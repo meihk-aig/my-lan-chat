@@ -1,0 +1,5 @@
+FORMAT = "utf-8"
+HEADER = 1024
+
+PORT = 9191
+TIMEOUT = 10
