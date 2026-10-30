@@ -28,8 +28,7 @@ if __name__ == "__main__":
 
         print("Hello")
 
-        chat = cht.ChatManager(lst.tcp_port, lst.name, host)
-        chat.start_listening()
+        manager = cht.ChatManager(lst.tcp_port, host)
 
         print("Hello")
 
@@ -74,6 +73,28 @@ if __name__ == "__main__":
                     continue
 
                 print(f'[*] Your status set to "{host.state}"')
+
+            elif command[0] == "/chat":
+                if len(command) != 2:
+                    print("[*] /chat syntax must be /chat <peer_name>")
+                    continue
+
+                peer_name = command[1]
+
+                manager.start_chat(peer_name)
+
+                while True:
+                    message = input("> ").strip()
+
+                    if not message:
+                        continue
+
+                    if message == "/leave":
+                        print(f"[*] You have left the chat with {peer_name}")
+                        manager.leave_chat()
+                        break
+
+                    manager.send_message(peer_name, message)
 
     except KeyboardInterrupt:
         print("[*] Connection closed")

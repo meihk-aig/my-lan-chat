@@ -1,0 +1,126 @@
+# import const_val as c
+# import socket as sk
+# import threading as thd
+
+
+# class ChatManager:
+#     def __init__(self, tcp_port, name, peer):
+#         # Thông tin của bản thân
+#         self.name = name
+#         self.other = peer
+#         self.tcp_port = tcp_port
+
+#         # Socket chờ kết nối từ peer khác
+#         self.listen_socket = sk.socket(sk.AF_INET, sk.SOCK_STREAM)
+
+#         # Lưu những kết nối chat đang hoạt động
+#         self.connections = {}
+
+#         self.active_chat = None
+#         self.unread = {}
+
+#         self.listener_thread = thd.Thread(target=self.start_accepting)
+#         self.listener_thread.daemon = True
+
+#         # Bảo vệ connections nếu nhiều thread truy cập
+#         self.lock = thd.Lock()
+
+#     def start_accepting(self):
+#         # bind, listen
+#         self.listen_socket.bind(("", self.tcp_port))
+#         # accept liên tục
+#         self.listen_socket.listen()
+#         while True:
+#             conn, addr = self.listen_socket.accept()
+
+#             # Mỗi kết nối mới được giao cho handler
+#             peer_name = ""
+#             for name, info in self.other.peers.items():
+#                 if info["ip"] == addr[0]:
+#                     peer_name = name
+
+#             with self.lock:
+#                 self.connections[peer_name] = conn
+
+#             recv_thread = thd.Thread(
+#                 target=self.receive_handler, args=(peer_name, conn)
+#             )
+#             recv_thread.daemon = True
+#             recv_thread.start()
+
+#     def start_listening(self):
+#         self.listener_thread.start()
+
+#     def start_chat(self, peer_name):
+#         if peer_name not in self.other.peers:
+#             print(f"[*] Cannot find the user {peer_name}")
+#             return
+
+#         if peer_name not in self.connections:
+#             try:
+#                 self.connect_to_peer(peer_name)
+#             except:
+#                 print(f"[*] Cannot connect to the user {peer_name}")
+#                 with self.lock:
+#                     self.active_chat = None
+
+#         with self.lock:
+#             self.active_chat = peer_name
+
+#     def connect_to_peer(self, peer_name):
+#         # Tìm IP và TCP port trong danh sách peers
+#         peer_ip = self.other.peers[peer_name]["ip"]
+#         peer_port = self.other.peers[peer_name]["port"]
+#         peer_address = (peer_ip, peer_port)
+#         # Tạo socket client
+#         client_socket = sk.socket(sk.AF_INET, sk.SOCK_STREAM)
+#         # connect đến peer
+#         client_socket.connect(peer_address)
+#         # Đăng ký kết nối
+
+#         with self.lock:
+#             self.connections[peer_name] = client_socket
+
+#     def receive_handler(self, peer_name, conn):
+#         # Chỉ nhận dữ liệu
+#         # Xử lý khi peer ngắt kết nối
+#         while True:
+#             try:
+#                 msg = conn.recv(c.HEADER).decode(c.FORMAT)
+#                 if not msg:
+#                     break
+#                 print(f"{peer_name}: {msg}")
+#             except:
+#                 break
+
+#         # clean up
+#         with self.lock:
+#             if peer_name in self.connections:
+#                 self.connections.pop(peer_name)
+#             if self.active_chat == peer_name:
+#                 self.active_chat = None
+
+#         conn.close()
+
+#     def send_message(self, peer_name, msg):
+#         try:
+#             # Tìm kết nối tương ứng
+#             send_socket = self.connections[peer_name]
+#             msg = msg.encode(c.FORMAT)
+#             # Gửi message qua kết nối đó
+#             send_socket.sendall(msg)
+#         except:
+#             self.close_connection(peer_name)
+
+#     def close_connection(self, peer_name):
+#         # Xóa kết nối và đóng socket đúng cách
+#         with self.lock:
+#             conn = self.connections.pop(peer_name, None)
+
+#             if conn is None:
+#                 return
+
+#             if self.active_chat == peer_name:
+#                 self.active_chat = None
+
+#         conn.close()
