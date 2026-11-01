@@ -4,6 +4,9 @@ import const_val as c
 import chat as cht
 import commands as cmds
 
+import prompt_toolkit as ptk
+from prompt_toolkit.patch_stdout import patch_stdout as pout
+
 import threading as thd
 import time as tm
 import socket as sk
@@ -36,9 +39,13 @@ if __name__ == "__main__":
             "/chat": lambda args: cmds.chat_command(args, manager),
         }
 
+        session = prompt_toolkit.PromptSession()
+
         print("[*] Type /help for instructions.")
         while True:
-            args = input("> ").split()
+            with pout
+                args = session.prompt_async("> ")
+                args = args.strip()
 
             if len(args) == 0:
                 continue
