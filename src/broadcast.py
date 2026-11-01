@@ -33,7 +33,7 @@ class Broadcaster:
         return conn
 
     def recieve_message(self, host):
-        print(f"[*] Broadcasting presence on UDP port {c.PORT}")
+        print(f"[*] Broadcasting presence on UDP port {c.PORT}.")
         while True:
             # The variable data holds the message in bytes (we have to decode it), and addr holds the sender IP and PORT
             data, addr = self.recieve_socket.recvfrom(c.HEADER)
@@ -63,7 +63,7 @@ class Broadcaster:
                 break
 
     def broadcast_message(self, host, bcast, tcp_port):
-        print(f"[*] Listening on TCP port {tcp_port}")
+        print(f"[*] Listening on TCP port {tcp_port}.")
         while True:
             # Make the message and encode it to bytes
             msg = f"!LOL|{host.name}|{tcp_port}|{host.state}".encode(c.FORMAT)
