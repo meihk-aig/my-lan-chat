@@ -1,8 +1,7 @@
-import broadcast as brd
+from broadcast import *
 import peer as p
 import const_val as c
-import chat as cht
-import commands as cmds
+import chatting as cht
 
 import prompt_toolkit as ptk
 from prompt_toolkit.patch_stdout import patch_stdout as pout
@@ -26,34 +25,79 @@ if __name__ == "__main__":
 
         host = p.Peer(lst.name)
 
-        broadcaster = brd.Broadcaster(host, lst.bcast, lst.tcp_port)
+        broadcaster = Broadcaster(host, lst.bcast, lst.tcp_port)
         broadcaster.start_broadcasting()
         broadcaster.start_listening()
 
+        print("Hello")
+
         manager = cht.ChatManager(lst.tcp_port, host)
 
-        commands = {
-            "/quit": lambda args: cmds.quit_command(args, broadcaster),
-            "/status": lambda args: cmds.status_command(args, host),
-            "/list": lambda args: cmds.list_command(args, host),
-            "/chat": lambda args: cmds.chat_command(args, manager),
-        }
+        print("Hello")
 
-        session = prompt_toolkit.PromptSession()
-
-        print("[*] Type /help for instructions.")
+        print("[*] Type /help for instructions")
         while True:
-            with pout
-                args = session.prompt_async("> ")
-                args = args.strip()
+            command = input("> ").split()
 
-            if len(args) == 0:
+            if len(command) == 0:
                 continue
 
-            handler = commands.get(args[0])
-
-            if handler and handler(args) is c.EXIT:
+            if command[0] == "/quit":  # /quit
+                broadcaster.end_process()
+                print("[*] Connection closed")
                 break
+
+            elif command[0] == "/help":  # /help
+                p.print_help_message()
+
+            elif command[0] == "/list":  # /list
+                current_time = tm.time()
+
+                with host.peers_lock:
+                    index = 1
+                    peers_snapshot = host.peers.copy()
+                    for name, info in peers_snapshot.items():
+                        current_state = info["state"]
+
+                        if current_time - info["last_seen"] > c.TIMEOUT:
+                            current_state = "away"
+
+                        print(f"    {index}. {name} ({info['ip']}) {current_state}")
+
+                        index += 1
+
+            elif command[0] == "/status" and len(command) == 2:  # /status
+                if command[1] == "online":
+                    host.state = "online"
+                elif command[1] == "away":
+                    host.state = "away"
+                else:
+                    print('[*] Your status must be "online" or "away"')
+                    continue
+
+                print(f'[*] Your status set to "{host.state}"')
+
+            elif command[0] == "/chat":
+                if len(command) != 2:
+                    print("[*] /chat syntax must be /chat <peer_name>")
+                    continue
+
+                peer_name = command[1]
+
+                manager.start_chat(peer_name)
+
+                while True:
+                    message = input("> ").strip()
+
+                    if not message:
+                        continue
+
+                    if message == "/leave":
+                        print(f"[*] You have left the chat with {peer_name}")
+                        manager.leave_chat()
+                        break
+
+                    manager.send_message(peer_name, message)
 
     except KeyboardInterrupt:
         print("[*] Connection closed")
