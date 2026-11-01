@@ -3,3 +3,5 @@ HEADER = 1024
 
 PORT = 9191
 TIMEOUT = 10
+
+EXIT = object()

@@ -96,7 +96,7 @@ class ChatManager:
 
     def start_chat(self, peer_name):
         if not self.connect_to_peer(peer_name):
-            print(f"[!] Cannot connect to {peer_name}")
+            print(f"[*] Cannot connect to {peer_name}")
             return False
 
         with self.lock:

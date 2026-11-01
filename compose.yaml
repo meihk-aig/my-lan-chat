@@ -2,20 +2,20 @@
 services:
   alice:
     build: .
-    container_name: khiem
+    container_name: alice
     stdin_open: true
     tty: true
-    command: python ./src/main.py --name Khiem --tcp-port 5050
+    command: python ./src/main.py --name Alice --tcp-port 5050
     networks:
       p2p_network:
         ipv4_address: 172.20.0.2
 
   bob:
     build: .
-    container_name: hien
+    container_name: bob
     stdin_open: true
     tty: true
-    command: python ./src/main.py --name Hien --tcp-port 5051
+    command: python ./src/main.py --name Bob --tcp-port 5051
     networks:
       p2p_network:
         ipv4_address: 172.20.0.3
