@@ -73,7 +73,7 @@ def list_command(args, host):
             index += 1
 
 
-def chat_command(args, manager):
+def chat_command(args, manager, session):
     if len(args) != 2:
         print('[*] Do you mean "/chat <name>"?')
         return
@@ -84,7 +84,7 @@ def chat_command(args, manager):
         return
 
     while True:
-        message = input("> ").strip()
+        message = session.prompt("> ").strip()
 
         if not message:
             continue
